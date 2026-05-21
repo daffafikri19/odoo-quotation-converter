@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odoo Quotation Converter</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title .icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .source-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .source-option {
+            flex: 1;
+            padding: 20px;
+            border: 3px solid #e1e1e1;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .source-option:hover {
+            border-color: #667eea;
+        }
+
+        .source-option.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .source-option input {
+            display: none;
+        }
+
+        .source-option .logo {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .source-option .name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .file-upload {
+            border: 3px dashed #e1e1e1;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .file-upload.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .file-upload .icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .file-upload .text {
+            color: #666;
+        }
+
+        .file-upload .filename {
+            color: #333;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 10px 30px rgba(108, 117, 125, 0.4);
+        }
+
+        .progress-section {
+            display: none;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-bar-container {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .progress-message {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .log-section {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e1e1e1;
+            border-radius: 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            padding: 10px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .log-entry.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .log-entry.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .log-entry.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .log-row-number {
+            color: #888;
+            margin-right: 10px;
+        }
+
+        .results-summary {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card.total {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .stat-card.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stat-card.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .download-section {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .download-section.active {
+            display: block;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            width: auto;
+            padding: 15px 40px;
+        }
+
+        .btn-download:hover {
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+        }
+
+        .error-details {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error-details.active {
+            display: block;
+        }
+
+        .error-list {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .error-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .error-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .error-item .row-info {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 8px;
+        }
+
+        .error-item .error-messages {
+            color: #856404;
+            padding-left: 20px;
+        }
+
+        .template-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .template-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            color: #495057;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .template-link:hover {
+            background: #e9ecef;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e1e1e1;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .tab.active {
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Odoo Quotation Converter</h1>
+            <p>Ubah data pesanan Shopee & Tokopedia ke format siap import Odoo</p>
+        </div>
+
+        <div class="card" id="uploadCard">
+            <div class="card-title">
+                <div class="icon">📁</div>
+                Upload File Pesanan
+            </div>
+
+            <div class="source-selector">
+                <label class="source-option active" data-value="shopee">
+                    <input type="radio" name="source_type" value="shopee" checked>
+                    <div class="logo">🛒</div>
+                    <div class="name">Shopee</div>
+                </label>
+                <label class="source-option" data-value="tokopedia">
+                    <input type="radio" name="source_type" value="tokopedia">
+                    <div class="logo">🛍️</div>
+                    <div class="name">Tokopedia</div>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="fileInput">Pilih File Excel (.xlsx, .xls)</label>
+                <div class="file-upload" id="fileUpload">
+                    <input type="file" id="fileInput" accept=".xlsx,.xls">
+                    <div class="icon">📄</div>
+                    <div class="text">Klik atau drag file ke sini</div>
+                    <div class="filename" id="fileName"></div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="basic">Pengaturan Dasar</button>
+                <button class="tab" data-tab="advanced">Pengaturan Lanjutan</button>
+            </div>
+
+            <div class="tab-content active" id="tab-basic">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="warehouse">Warehouse (Gudang)</label>
+                        <input type="text" id="warehouse" placeholder="Main Warehouse" value="Main Warehouse">
+                    </div>
+                    <div class="form-group">
+                        <label for="team">Sales Team</label>
+                        <input type="text" id="team" placeholder="Kosongkan jika tidak dipakai" value="">
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-advanced">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="country">Country (Negara)</label>
+                        <input type="text" id="country" placeholder="Indonesia" value="Indonesia">
+                    </div>
+                    <div class="form-group">
+                        <label for="tax">Tax (%)</label>
+                        <input type="number" id="tax" placeholder="0" value="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="payment_term">Payment Terms</label>
+                        <select id="payment_term">
+                            <option value="Immediate Payment">Immediate Payment</option>
+                            <option value="15 Days">15 Days</option>
+                            <option value="30 Days">30 Days</option>
+                            <option value="45 Days">45 Days</option>
+                            <option value="60 Days">60 Days</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="salesperson">Salesperson (Opsional)</label>
+                        <input type="text" id="salesperson" placeholder="Nama salesperson">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" id="convertBtn" disabled>
+                <span>🚀</span> Konversi Sekarang
+            </button>
+
+            <div class="template-links">
+                <a href="/templates/shopee" class="template-link" download>📥 Template Shopee</a>
+                <a href="/templates/tokopedia" class="template-link" download>📥 Template Tokopedia</a>
+                <a href="/templates/odoo" class="template-link" download>📥 Template Odoo</a>
+            </div>
+        </div>
+
+        <div class="card progress-section" id="progressCard">
+            <div class="card-title">
+                <div class="icon">⚙️</div>
+                Memproses Konversi
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%">0%</div>
+            </div>
+            <div class="progress-message" id="progressMessage">Memulai...</div>
+
+            <div class="results-summary" id="resultsSummary" style="display: none;">
+                <div class="stat-card total">
+                    <div class="number" id="totalCount">0</div>
+                    <div class="label">Total Baris</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="number" id="successCount">0</div>
+                    <div class="label">Berhasil</div>
+                </div>
+                <div class="stat-card error">
+                    <div class="number" id="failedCount">0</div>
+                    <div class="label">Gagal</div>
+                </div>
+            </div>
+
+            <div class="log-section" id="logSection">
+            </div>
+
+            <div class="error-details" id="errorDetails">
+                <h4 style="margin-bottom: 15px; color: #856404;">📋 Detail Error</h4>
+                <div class="error-list" id="errorList">
+                </div>
+            </div>
+
+            <div class="download-section" id="downloadSection">
+                <h3 style="margin-bottom: 15px;">✨ Konversi Selesai!</h3>
+                <p style="margin-bottom: 20px; color: #666;">File siap didownload dan diimport ke Odoo</p>
+                <button class="btn btn-download" id="downloadBtn">
+                    <span>📥</span> Download File Odoo
+                </button>
+            </div>
+
+            <button class="btn btn-secondary" id="resetBtn" style="margin-top: 15px; display: none;">
+                🔄 Konversi File Lain
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const fileInput = document.getElementById('fileInput');
+        const fileUpload = document.getElementById('fileUpload');
+        const fileName = document.getElementById('fileName');
+        const convertBtn = document.getElementById('convertBtn');
+        const progressCard = document.getElementById('progressCard');
+        const uploadCard = document.getElementById('uploadCard');
+        const progressBar = document.getElementById('progressBar');
+        const progressMessage = document.getElementById('progressMessage');
+        const logSection = document.getElementById('logSection');
+        const resultsSummary = document.getElementById('resultsSummary');
+        const downloadSection = document.getElementById('downloadSection');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const errorDetails = document.getElementById('errorDetails');
+        const errorList = document.getElementById('errorList');
+
+        let currentConversionId = null;
+        let selectedFile = null;
+
+        // Tab handling
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Source selector
+        document.querySelectorAll('.source-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.source-option').forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+                option.querySelector('input').checked = true;
+            });
+        });
+
+        // File upload handling
+        fileUpload.addEventListener('click', () => fileInput.click());
+
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.classList.add('dragover');
+        });
+
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('dragover');
+        });
+
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            const validExtensions = ['xlsx', 'xls'];
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            if (!validExtensions.includes(ext)) {
+                alert('Format file tidak valid. Gunakan .xlsx atau .xls');
+                return;
+            }
+
+            selectedFile = file;
+            fileName.textContent = '📎 ' + file.name;
+            fileName.style.display = 'block';
+            convertBtn.disabled = false;
+        }
+
+        // Convert button
+        convertBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            // Show progress card
+            uploadCard.style.display = 'none';
+            progressCard.classList.add('active');
+            logSection.innerHTML = '';
+            resultsSummary.style.display = 'none';
+            downloadSection.classList.remove('active');
+            errorDetails.classList.remove('active');
+
+            // Collect form data
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('source_type', document.querySelector('input[name="source_type"]:checked').value);
+            formData.append('warehouse', document.getElementById('warehouse').value);
+            formData.append('team', document.getElementById('team').value);
+            formData.append('country', document.getElementById('country').value);
+            formData.append('tax', document.getElementById('tax').value);
+            formData.append('payment_term', document.getElementById('payment_term').value);
+            formData.append('salesperson', document.getElementById('salesperson').value);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentConversionId = result.conversion_id;
+                    await pollProgress(currentConversionId);
+                } else {
+                    addLog('error', `Gagal: ${result.error}`);
+                    progressMessage.textContent = 'Terjadi kesalahan';
+                }
+            } catch (error) {
+                addLog('error', `Error: ${error.message}`);
+                progressMessage.textContent = 'Terjadi kesalahan koneksi';
+            }
+        });
+
+        async function pollProgress(conversionId) {
+            const poll = async () => {
+                try {
+                    const response = await fetch(`/api/progress/${conversionId}`);
+                    const data = await response.json();
+
+                    // Update progress bar
+                    progressBar.style.width = data.progress + '%';
+                    progressBar.textContent = data.progress + '%';
+                    progressMessage.textContent = data.message || 'Memproses...';
+
+                    // Add log entry
+                    addLog('info', data.message);
+
+                    if (data.status === 'completed') {
+                        // Get full report
+                        const reportResponse = await fetch(`/api/report/${conversionId}`);
+                        const reportData = await reportResponse.json();
+
+                        displayResults(reportData);
+                        return;
+                    } else if (data.status === 'failed') {
+                        addLog('error', data.error || 'Terjadi kesalahan');
+                        progressMessage.textContent = 'Gagal';
+                        return;
+                    }
+
+                    // Continue polling
+                    setTimeout(poll, 500);
+                } catch (error) {
+                    addLog('error', `Polling error: ${error.message}`);
+                }
+            };
+
+            poll();
+        }
+
+        function displayResults(data) {
+            progressBar.style.width = '100%';
+            progressBar.textContent = '100%';
+            progressMessage.textContent = 'Konversi selesai!';
+
+            const report = data.report;
+
+            // Show summary
+            resultsSummary.style.display = 'flex';
+            document.getElementById('totalCount').textContent = report.total_rows;
+            document.getElementById('successCount').textContent = report.success_count;
+            document.getElementById('failedCount').textContent = report.failed_count;
+
+            // Show logs
+            report.results.forEach(r => {
+                addLog(r.success ? 'success' : 'error', r.message);
+            });
+
+            // Show errors
+            if (report.errors && report.errors.length > 0) {
+                errorDetails.classList.add('active');
+                errorList.innerHTML = '';
+
+                report.errors.forEach(err => {
+                    const item = document.createElement('div');
+                    item.className = 'error-item';
+                    item.innerHTML = `
+                        <div class="row-info">⚠️ Baris ${err.row}</div>
+                        <div class="error-messages">
+                            ${err.errors.map(e => `<div>• ${e}</div>`).join('')}
+                        </div>
+                    `;
+                    errorList.appendChild(item);
+                });
+            }
+
+            // Show download button
+            if (report.success_count > 0) {
+                downloadSection.classList.add('active');
+                downloadBtn.onclick = () => downloadFile(currentConversionId);
+            }
+
+            resetBtn.style.display = 'block';
+        }
+
+        function addLog(type, message) {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            logSection.appendChild(entry);
+            logSection.scrollTop = logSection.scrollHeight;
+        }
+
+        async function downloadFile(conversionId) {
+            window.location.href = `/api/download/${conversionId}`;
+        }
+
+        // Reset button
+        resetBtn.addEventListener('click', () => {
+            uploadCard.style.display = 'block';
+            progressCard.classList.remove('active');
+            selectedFile = null;
+            fileInput.value = '';
+            fileName.textContent = '';
+            fileName.style.display = 'none';
+            convertBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

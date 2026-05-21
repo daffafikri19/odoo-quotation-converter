@@ -1,0 +1,13 @@
+__pycache__/
+core/__pycache__/
+*.py[cod]
+
+venv/
+
+uploads/*
+exports/*
+
+.agents/
+.claude/
+skills-lock.json
+.env
