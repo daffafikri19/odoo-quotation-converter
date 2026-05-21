@@ -6,8 +6,11 @@ venv/
 
 uploads/*
 exports/*
+core/data/exports/*
+core/data/imports/*
 
 .agents/
 .claude/
 skills-lock.json
-.env
+config.bat
+node_modules

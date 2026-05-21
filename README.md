@@ -29,8 +29,8 @@ Most operational settings are handled from the web UI. The `.env` file is option
 |-- core/
 |   |-- converter.py               # Excel mapping and conversion logic
 |   `-- data/
-|       |-- exports/               # Shopee and Tokopedia sample templates
-|       `-- imports/               # Odoo import template
+|       |-- exports/               # Local/private marketplace sample templates
+|       `-- imports/               # Local/private Odoo import template
 |-- templates/
 |   `-- index.html                 # Upload and conversion UI
 |-- scripts/
@@ -171,4 +171,9 @@ If the app is deployed to a Linux server, use cron:
 
 - `.env` is for local config and should remain ignored by git.
 - `.env.example` is kept as the config template.
+- `core/data/exports/` and `core/data/imports/` are local/private data folders and should remain ignored by git.
 - `SPEC.md` has been replaced by this README.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
